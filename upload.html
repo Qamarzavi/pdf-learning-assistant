@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block title %}Upload PDF - PDF Learning Assistant{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">
+                    <i class="fas fa-cloud-upload-alt"></i> Upload PDF
+                </h2>
+                
+                <div class="upload-area border-dashed p-5 text-center mb-4" id="dropZone">
+                    <i class="fas fa-file-pdf fa-4x text-primary mb-3"></i>
+                    <h4>Drag & Drop PDF Here</h4>
+                    <p class="text-muted">or click to browse</p>
+                </div>
+                
+                <form method="POST" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="uploadForm">
+                    <div class="mb-3">
+                        <input type="file" class="form-control" id="pdf_file" name="pdf_file" 
+                               accept=".pdf" required>
+                        <div class="form-text">Maximum file size: 16MB. Only PDF files allowed.</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" id="uploadBtn">
+                            <i class="fas fa-upload"></i> Upload & Process
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="mt-4">
+                    <h5><i class="fas fa-magic"></i> What happens next?</h5>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> Text extraction from PDF</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> AI-powered summary generation</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> Keyword extraction</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> Important questions generation</li>
+                        <li class="list-group-item"><i class="fas fa-check-circle text-success"></i> Quiz creation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Drag and drop functionality
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('pdf_file');
+
+dropZone.addEventListener('click', () => {
+    fileInput.click();
+});
+
+dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('bg-light');
+});
+
+dropZone.addEventListener('dragleave', () => {
+    dropZone.classList.remove('bg-light');
+});
+
+dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('bg-light');
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        fileInput.files = files;
+    }
+});
+
+fileInput.addEventListener('change', (e) => {
+    const fileName = e.target.files[0]?.name;
+    if (fileName) {
+        dropZone.querySelector('h4').textContent = 'Selected: ' + fileName;
+    }
+});
+
+// Show loading state
+document.getElementById('uploadForm').addEventListener('submit', function() {
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+});
+</script>
+{% endblock %}
