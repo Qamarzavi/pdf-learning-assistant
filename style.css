@@ -1,0 +1,413 @@
+/* Custom Styles for PDF Learning Assistant */
+
+:root {
+    --primary-color: #4A90E2;
+    --secondary-color: #50E3C2;
+    --dark-color: #2C3E50;
+    --light-color: #F5F6FA;
+    --danger-color: #E74C3C;
+    --success-color: #27AE60;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--light-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1;
+}
+
+/* Navbar Enhancement */
+.navbar {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+/* Cards */
+.card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 600;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 3px dashed #ccc;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    background-color: #fafafa;
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background-color: #f0f7ff;
+}
+
+.upload-area.bg-light {
+    background-color: #e8f4fd;
+    border-color: var(--primary-color);
+}
+
+/* Keywords */
+.keywords-display {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.keyword-badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    margin: 4px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    animation: fadeIn 0.5s ease-in;
+}
+
+/* Quiz Styling */
+.quiz-question {
+    background-color: #f8f9fa;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.quiz-question:hover {
+    background-color: #e9ecef;
+}
+
+/* Buttons */
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 10px 20px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Flash Messages Animation */
+.alert {
+    animation: slideDown 0.5s ease-in;
+    border-radius: 8px;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading Spinner */
+.spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: #fff;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+    
+    .card-body {
+        padding: 20px;
+    }
+    
+    .display-4 {
+        font-size: 2rem;
+    }
+    
+    .btn-lg {
+        padding: 8px 16px;
+        font-size: 1rem;
+    }
+}
+
+/* Footer */
+footer {
+    margin-top: auto;
+    border-top: 1px solid #e0e0e0;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Text Selection */
+::selection {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Print Styles */
+@media print {
+    .navbar, footer, .btn {
+        display: none;
+    }
+    
+    .card {
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+}
+/* ==================== NEW: STAT CARDS ==================== */
+
+.stat-card {
+    border-radius: 15px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #27AE60, #1E8449);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #17A2B8, #117A8B);
+}
+
+.bg-gradient-warning {
+    background: linear-gradient(135deg, #F39C12, #D68910);
+}
+
+/* ==================== NEW: FLASHCARD STYLES ==================== */
+
+.flashcard {
+    width: 100%;
+    max-width: 500px;
+    height: 300px;
+    margin: 20px auto;
+    perspective: 1000px;
+    cursor: pointer;
+}
+
+.flashcard-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+}
+
+.flashcard-inner.flipped {
+    transform: rotateY(180deg);
+}
+
+.flashcard-front, .flashcard-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+}
+
+.flashcard-front {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.flashcard-back {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    transform: rotateY(180deg);
+}
+
+.flashcard-text {
+    font-size: 1.2rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* ==================== NEW: NOTE COLORS ==================== */
+
+:root {
+    --note-yellow: #FFF9C4;
+    --note-green: #C8E6C9;
+    --note-blue: #BBDEFB;
+    --note-pink: #F8BBD0;
+}
+
+.note-card {
+    position: relative;
+    transition: transform 0.2s;
+}
+
+.note-card:hover {
+    transform: translateX(5px);
+}
+
+/* ==================== NEW: CHAT STYLES ==================== */
+
+.chat-container::-webkit-scrollbar {
+    width: 5px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+/* ==================== NEW: TAB STYLES ==================== */
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #666;
+    padding: 12px 20px;
+    font-weight: 500;
+    transition: all 0.3s;
+}
+
+.nav-tabs .nav-link:hover {
+    border: none;
+    color: #4A90E2;
+    background: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    border: none;
+    color: #4A90E2;
+    border-bottom: 3px solid #4A90E2;
+    background: transparent;
+}
+
+/* ==================== NEW: KEYWORD BADGES ==================== */
+
+.keyword-badge {
+    font-size: 1rem;
+    padding: 10px 20px;
+    border-radius: 25px;
+    transition: transform 0.2s;
+}
+
+.keyword-badge:hover {
+    transform: scale(1.1);
+}
+
+/* ==================== CHAT BUBBLE STYLES ==================== */
+
+.chat-bubble {
+    max-width: 75%;
+    padding: 12px 16px;
+    border-radius: 15px;
+    word-wrap: break-word;
+}
+
+.chat-bubble-user {
+    background: linear-gradient(135deg, #4A90E2, #357ABD);
+    color: white;
+    border-bottom-right-radius: 5px;
+}
+
+.chat-bubble-ai {
+    background: #F0F0F0;
+    color: #333;
+    border-bottom-left-radius: 5px;
+}
+
+.chat-bubble-error {
+    background: #FFE0E0;
+    color: #C0392B;
+    border: 1px solid #E74C3C;
+}
+
+/* ==================== FLASHCARD KEYBOARD HINT ==================== */
+
+.flashcard-hint {
+    font-size: 0.8rem;
+    color: #999;
+    margin-top: 10px;
+}
+
+/* ==================== TOAST NOTIFICATION ==================== */
+
+.toast-notification {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    font-weight: 500;
+}
