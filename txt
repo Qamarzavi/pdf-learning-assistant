@@ -1,0 +1,16 @@
+
+---
+
+## 🚀 Installation
+
+### Prerequisites
+
+- **Python 3.8 or higher** ([Download](https://www.python.org/downloads/))
+- **Git** ([Download](https://git-scm.com/downloads))
+- **Google Gemini API Key** (FREE - [Get it here](https://aistudio.google.com/app/apikey))
+
+### Step 1: Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/pdf-learning-assistant.git
+cd pdf-learning-assistant
