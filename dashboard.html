@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - PDF Learning Assistant{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h2><i class="fas fa-tachometer-alt"></i> My Dashboard</h2>
+        <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-gradient-primary text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-file-pdf fa-2x mb-2"></i>
+                <h3 id="totalPdfs">0</h3>
+                <p class="mb-0">Total PDFs</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-gradient-success text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-file-alt fa-2x mb-2"></i>
+                <h3 id="totalSummaries">0</h3>
+                <p class="mb-0">Summaries</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-gradient-info text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-question-circle fa-2x mb-2"></i>
+                <h3 id="totalQuizAttempts">0</h3>
+                <p class="mb-0">Quiz Attempts</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 col-sm-6 mb-3">
+        <div class="card stat-card bg-gradient-warning text-white">
+            <div class="card-body text-center">
+                <i class="fas fa-star fa-2x mb-2"></i>
+                <h3 id="averageScore">0%</h3>
+                <p class="mb-0">Avg Quiz Score</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent PDFs -->
+    <div class="col-lg-8 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-history"></i> Recent PDFs</h5>
+                <a href="{{ url_for('upload') }}" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus"></i> Upload New
+                </a>
+            </div>
+            <div class="card-body" id="recentPdfs">
+                <div class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="col-lg-4 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('upload') }}" class="btn btn-primary w-100 mb-2">
+                    <i class="fas fa-upload"></i> Upload New PDF
+                </a>
+                <button class="btn btn-outline-success w-100 mb-2" onclick="refreshStats()">
+                    <i class="fas fa-sync-alt"></i> Refresh Stats
+                </button>
+                <a href="#" class="btn btn-outline-info w-100" data-bs-toggle="modal" data-bs-target="#helpModal">
+                    <i class="fas fa-question-circle"></i> How to Use
+                </a>
+            </div>
+        </div>
+        
+        <!-- Study Tips -->
+        <div class="card shadow-sm mt-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-lightbulb"></i> Study Tip</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 small" id="studyTip">Loading tip...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Help Modal -->
+<div class="modal fade" id="helpModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">How to Use PDF Learning Assistant</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <ol>
+                    <li><strong>Upload PDF</strong> - Click "Upload New PDF" button</li>
+                    <li><strong>View Results</strong> - Get AI-generated summary, keywords, questions</li>
+                    <li><strong>Take Quiz</strong> - Test your knowledge with auto-generated quiz</li>
+                    <li><strong>Study Flashcards</strong> - Review key concepts with flashcards</li>
+                    <li><strong>Take Notes</strong> - Add your own notes while studying</li>
+                    <li><strong>Chat with PDF</strong> - Ask questions about your document</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Study tips array
+const studyTips = [
+    "📚 Review material within 24 hours to retain 80% more information!",
+    "🎯 Use active recall - test yourself instead of re-reading!",
+    "⏰ Study in 25-minute blocks (Pomodoro Technique) for better focus!",
+    "🗂️ Organize information into chunks for easier memorization!",
+    "💡 Teach concepts to others - it reinforces your understanding!",
+    "🎨 Use color-coding in notes to improve memory retention!",
+    "🔄 Spaced repetition is key - review flashcards regularly!",
+    "🧠 Get enough sleep - your brain consolidates memories during sleep!"
+];
+
+// Display random study tip
+document.getElementById('studyTip').textContent = studyTips[Math.floor(Math.random() * studyTips.length)];
+
+// Fetch dashboard stats
+function refreshStats() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            animateValue('totalPdfs', 0, data.total_pdfs, 1000);
+            animateValue('totalSummaries', 0, data.total_summaries, 1000);
+            animateValue('totalQuizAttempts', 0, data.total_quiz_attempts, 1000);
+            document.getElementById('averageScore').textContent = data.average_quiz_score + '%';
+        });
+    
+    fetch('/api/recent_pdfs')
+        .then(response => response.json())
+        .then(pdfs => {
+            const container = document.getElementById('recentPdfs');
+            
+            if (pdfs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p>No PDFs uploaded yet.</p>
+                        <a href="{{ url_for('upload') }}" class="btn btn-primary">Upload Your First PDF</a>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = pdfs.map(pdf => `
+                <div class="d-flex justify-content-between align-items-center p-3 border-bottom">
+                    <div>
+                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                        <strong>${pdf.filename}</strong>
+                        <br>
+                        <small class="text-muted">${pdf.upload_date}</small>
+                    </div>
+                    <a href="/view/${pdf.id}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </div>
+            `).join('');
+        });
+}
+
+// Animated counter
+function animateValue(id, start, end, duration) {
+    const element = document.getElementById(id);
+    const range = end - start;
+    const increment = range / (duration / 16);
+    let current = start;
+    
+    const timer = setInterval(() => {
+        current += increment;
+        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
+            element.textContent = Math.round(end);
+            clearInterval(timer);
+        } else {
+            element.textContent = Math.round(current);
+        }
+    }, 16);
+}
+
+// Load stats on page load
+document.addEventListener('DOMContentLoaded', refreshStats);
+
+// Refresh every 30 seconds
+setInterval(refreshStats, 30000);
+</script>
+{% endblock %}
