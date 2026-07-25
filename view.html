@@ -1,0 +1,758 @@
+{% extends "base.html" %}
+
+{% block title %}View PDF - PDF Learning Assistant{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left"></i> Dashboard
+        </a>
+        <a href="{{ url_for('download_report', pdf_id=pdf.id) }}" class="btn btn-success btn-sm float-end">
+            <i class="fas fa-download"></i> Download Report
+        </a>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h4><i class="fas fa-file-pdf text-danger"></i> {{ pdf.original_filename }}</h4>
+        <p class="text-muted small">Uploaded: {{ pdf.upload_date.strftime('%B %d, %Y at %I:%M %p') }}</p>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-tabs mb-4" id="pdfTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#summary" type="button">
+            <i class="fas fa-file-alt"></i> Summary
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#keywords" type="button">
+            <i class="fas fa-tags"></i> Keywords
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#questions" type="button">
+            <i class="fas fa-question-circle"></i> Questions
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#quiz" type="button">
+            <i class="fas fa-tasks"></i> Quiz
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#flashcards" type="button">
+            <i class="fas fa-clone"></i> Flashcards
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#notes" type="button">
+            <i class="fas fa-sticky-note"></i> Notes
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#chat" type="button">
+            <i class="fas fa-robot"></i> AI Chat
+        </button>
+    </li>
+</ul>
+
+<!-- Tabs Content -->
+<div class="tab-content" id="pdfTabContent">
+    
+    <!-- Summary Tab -->
+    <div class="tab-pane fade show active" id="summary">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% if pdf.summary %}
+                <div style="white-space: pre-line; line-height: 1.8;">{{ pdf.summary }}</div>
+                {% else %}
+                <p class="text-muted text-center py-4">No summary available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Keywords Tab -->
+    <div class="tab-pane fade" id="keywords">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% if pdf.keywords %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% set keyword_list = pdf.keywords.split(',') %}
+                    {% for keyword in keyword_list %}
+                    <span class="badge bg-primary keyword-badge">{{ keyword.strip() }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No keywords available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Questions Tab -->
+    <div class="tab-pane fade" id="questions">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                {% if pdf.questions %}
+                <div style="white-space: pre-line; line-height: 2;">{{ pdf.questions }}</div>
+                {% else %}
+                <p class="text-muted text-center py-4">No questions available</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quiz Tab -->
+    <div class="tab-pane fade" id="quiz">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div id="quizContainer">
+                    {% if quiz_data and quiz_data is iterable and quiz_data is not string %}
+                    <form id="quizForm">
+                        {% for question in quiz_data %}
+                        {% set q_index = loop.index0 %}
+
+<div class="quiz-question mb-4 p-4 border rounded bg-light">
+    <h5><strong>Q{{ loop.index }}:</strong> {{ question.question }}</h5>
+
+    <div class="options ms-4 mt-3">
+        {% for option in question.options %}
+        {% if option %}
+        <div class="form-check mb-2">
+            <input
+                class="form-check-input"
+                type="radio"
+                name="q{{ q_index }}"
+                id="q{{ q_index }}_{{ loop.index }}"
+                value="{{ ['A','B','C','D'][loop.index0] }}">
+
+            <label
+                class="form-check-label"
+                for="q{{ q_index }}_{{ loop.index }}">
+                <strong>{{ ['A','B','C','D'][loop.index0] }})</strong>
+                {{ option }}
+            </label>
+        </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-primary btn-lg w-100" id="submitQuizBtn">
+                            <i class="fas fa-check-circle"></i> Submit Quiz
+                        </button>
+                    </form>
+                    <div id="quizResult" class="mt-3" style="display:none;"></div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No quiz available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Flashcards Tab -->
+    <div class="tab-pane fade" id="flashcards">
+        <div class="card shadow-sm">
+            <div class="card-body text-center">
+                <div id="flashcardContainer">
+                    <div class="flashcard" id="flashcard" onclick="flipFlashcard()">
+                        <div class="flashcard-inner" id="flashcardInner">
+                            <div class="flashcard-front">
+                                <p class="flashcard-text" id="flashcardFront">Click to load flashcards</p>
+                            </div>
+                            <div class="flashcard-back">
+                                <p class="flashcard-text" id="flashcardBack">Answer will appear here</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary" onclick="previousFlashcard()">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <span class="mx-3" id="flashcardCounter">0 / 0</span>
+                        <button class="btn btn-outline-primary" onclick="nextFlashcard()">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-danger" onclick="markDifficult()">
+                            <i class="fas fa-exclamation-triangle"></i> Difficult
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="markEasy()">
+                            <i class="fas fa-check"></i> Easy
+                        </button>
+                    </div>
+                </div>
+                <div id="noFlashcards" style="display:none;">
+                    <i class="fas fa-clone fa-3x text-muted mb-3"></i>
+                    <p>No flashcards available for this PDF.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Notes Tab -->
+    <div class="tab-pane fade" id="notes">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="mb-3">
+                    <textarea class="form-control" id="noteInput" rows="3" placeholder="Write your notes here..."></textarea>
+                    <div class="mt-2">
+                        <select class="form-select form-select-sm d-inline-block w-auto" id="noteColor">
+                            <option value="yellow">🟡 Yellow</option>
+                            <option value="green">🟢 Green</option>
+                            <option value="blue">🔵 Blue</option>
+                            <option value="pink">🩷 Pink</option>
+                        </select>
+                        <button class="btn btn-primary btn-sm" onclick="addNote()">
+                            <i class="fas fa-plus"></i> Add Note
+                        </button>
+                    </div>
+                </div>
+                <div id="notesContainer">
+                    <p class="text-muted text-center">Loading notes...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- AI Chat Tab -->
+    <div class="tab-pane fade" id="chat">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="chat-container" id="chatMessages" style="height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px;">
+                    <div class="text-center text-muted">
+                        <i class="fas fa-robot fa-2x mb-2"></i>
+                        <p>Ask questions about your PDF document!</p>
+                    </div>
+                </div>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="chatInput" placeholder="Ask a question about this PDF..." 
+                           onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i> Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+// ==================== GLOBAL VARIABLES ====================
+const PDF_ID = "{{ pdf.id }}";
+
+// ==================== QUIZ LOGIC ====================
+let quizData = [];
+
+function loadQuiz() {
+    const quizRaw = '{{ pdf.quiz | safe }}';
+    
+    if (!quizRaw || quizRaw === 'None' || quizRaw === '[]' || quizRaw === '{}') {
+        document.getElementById('quizQuestions').innerHTML = 
+            '<p class="text-muted text-center py-4">No quiz questions available.</p>';
+        document.getElementById('submitQuizBtn').style.display = 'none';
+        return;
+    }
+    
+    try {
+        quizData = JSON.parse(quizRaw.replace(/&quot;/g, '"'));
+        
+        if (!Array.isArray(quizData) || quizData.length === 0) {
+            document.getElementById('quizQuestions').innerHTML = 
+                '<p class="text-muted text-center py-4">No quiz questions available.</p>';
+            document.getElementById('submitQuizBtn').style.display = 'none';
+            return;
+        }
+        
+        renderQuiz(quizData);
+    } catch (e) {
+        console.error('Error parsing quiz data:', e);
+        document.getElementById('quizQuestions').innerHTML = 
+            '<p class="text-muted text-center py-4">Error loading quiz. Please try again.</p>';
+        document.getElementById('submitQuizBtn').style.display = 'none';
+    }
+}
+
+function renderQuiz(questions) {
+    const container = document.getElementById('quizQuestions');
+    const optionLabels = ['A', 'B', 'C', 'D'];
+    
+    container.innerHTML = questions.map((q, i) => `
+        <div class="quiz-question mb-4 p-4 border rounded bg-light">
+            <h5><strong>Q${i + 1}:</strong> ${q.question}</h5>
+            <div class="options ms-4 mt-3">
+                ${q.options.map((opt, j) => `
+                    ${opt ? `
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" 
+                               name="q${i}" 
+                               id="q${i}_${j}"
+                               value="${optionLabels[j]}">
+                        <label class="form-check-label" for="q${i}_${j}">
+                            <strong>${optionLabels[j]})</strong> ${opt}
+                        </label>
+                    </div>
+                    ` : ''}
+                `).join('')}
+            </div>
+        </div>
+    `).join('');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const quizForm = document.getElementById('quizForm');
+    if (quizForm) {
+        quizForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitQuiz();
+        });
+    }
+    loadQuiz();
+});
+
+function submitQuiz() {
+    const answers = {};
+    let unansweredCount = 0;
+    
+    quizData.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected) {
+            answers[i] = selected.value;
+        } else {
+            unansweredCount++;
+        }
+    });
+    
+    if (unansweredCount > 0) {
+        if (!confirm(`You have ${unansweredCount} unanswered question(s). Submit anyway?`)) {
+            return;
+        }
+    }
+    
+    const submitBtn = document.getElementById('submitQuizBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Submitting...';
+    
+    fetch('/submit_quiz/' + PDF_ID, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({answers: answers})
+    })
+    .then(res => res.json())
+    .then(data => {
+        const resultDiv = document.getElementById('quizResult');
+        resultDiv.style.display = 'block';
+        
+        let badgeClass = 'danger';
+        let icon = 'book';
+        if (data.score >= 80) {
+            badgeClass = 'success';
+            icon = 'trophy';
+        } else if (data.score >= 60) {
+            badgeClass = 'warning';
+            icon = 'star';
+        } else if (data.score >= 40) {
+            badgeClass = 'info';
+            icon = 'book';
+        }
+        
+        resultDiv.innerHTML = `
+            <div class="alert alert-${badgeClass}">
+                <h5><i class="fas fa-${icon}"></i> ${data.message}</h5>
+                <p class="mb-1">Correct: <strong>${data.correct}</strong> out of <strong>${data.total}</strong></p>
+                <div class="progress mt-2" style="height: 25px;">
+                    <div class="progress-bar bg-${badgeClass} progress-bar-striped" 
+                         role="progressbar"
+                         style="width: ${data.score}%" 
+                         aria-valuenow="${data.score}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        ${data.score.toFixed(1)}%
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        submitBtn.innerHTML = '<i class="fas fa-check"></i> Quiz Submitted';
+        resultDiv.scrollIntoView({behavior: 'smooth'});
+    })
+    .catch(err => {
+        console.error('Error submitting quiz:', err);
+        alert('Error submitting quiz. Please try again.');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Submit Quiz';
+    });
+}
+
+// ==================== FLASHCARD LOGIC ====================
+let flashcards = [];
+let currentIndex = 0;
+
+function loadFlashcards() {
+    fetch('/api/flashcards/' + PDF_ID)
+        .then(res => res.json())
+        .then(data => {
+            flashcards = data;
+            if (flashcards.length > 0) {
+                document.getElementById('flashcardContainer').style.display = 'block';
+                document.getElementById('noFlashcards').style.display = 'none';
+                showFlashcard(0);
+            } else {
+                document.getElementById('flashcardContainer').style.display = 'none';
+                document.getElementById('noFlashcards').style.display = 'block';
+            }
+        })
+        .catch(err => {
+            console.error('Error loading flashcards:', err);
+            document.getElementById('flashcardContainer').style.display = 'none';
+            document.getElementById('noFlashcards').style.display = 'block';
+        });
+}
+
+function showFlashcard(index) {
+    if (flashcards.length === 0) return;
+    
+    currentIndex = index;
+    document.getElementById('flashcardFront').textContent = flashcards[index].front;
+    document.getElementById('flashcardBack').textContent = flashcards[index].back;
+    document.getElementById('flashcardCounter').textContent = 
+        `${index + 1} / ${flashcards.length}`;
+    
+    // Reset flip state
+    const inner = document.getElementById('flashcardInner');
+    if (inner) inner.classList.remove('flipped');
+}
+
+function flipFlashcard() {
+    const inner = document.getElementById('flashcardInner');
+    if (inner) inner.classList.toggle('flipped');
+}
+
+function nextFlashcard() {
+    if (currentIndex < flashcards.length - 1) {
+        showFlashcard(currentIndex + 1);
+    }
+}
+
+function previousFlashcard() {
+    if (currentIndex > 0) {
+        showFlashcard(currentIndex - 1);
+    }
+}
+
+function markDifficult() {
+    if (flashcards.length === 0) return;
+    
+    fetch(`/api/flashcards/review/${flashcards[currentIndex].id}`, {
+        method: 'POST'
+    }).then(() => {
+        showToast('Flashcard reviewed! 📚');
+    });
+}
+
+function markEasy() {
+    markDifficult();
+    nextFlashcard();
+}
+
+// ==================== NOTES LOGIC ====================
+function loadNotes() {
+    fetch('/api/notes/' + PDF_ID)
+        .then(res => res.json())
+        .then(notes => {
+            const container = document.getElementById('notesContainer');
+            if (!notes || notes.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-3">
+                        <i class="fas fa-sticky-note fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No notes yet. Add your first note!</p>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = notes.map(note => `
+                <div class="note-card p-3 mb-2 rounded border" 
+                     style="background-color: var(--note-${note.color}, #FFF9C4)">
+                    <p class="mb-1">${escapeHtml(note.content)}</p>
+                    <small class="text-muted">
+                        <i class="far fa-clock"></i> ${note.created_at}
+                    </small>
+                    <button class="btn btn-sm btn-outline-danger float-end" 
+                            onclick="deleteNote(${note.id})" title="Delete note">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `).join('');
+        })
+        .catch(err => console.error('Error loading notes:', err));
+}
+
+function addNote() {
+    const input = document.getElementById('noteInput');
+    const content = input.value.trim();
+    const color = document.getElementById('noteColor').value;
+    
+    if (!content) {
+        alert('Please write something in your note!');
+        return;
+    }
+    
+    fetch('/api/notes/' + PDF_ID, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({content: content, color: color})
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadNotes();
+            showToast('Note added! 📝');
+        }
+    })
+    .catch(err => console.error('Error adding note:', err));
+}
+
+function deleteNote(noteId) {
+    if (confirm('Delete this note?')) {
+        fetch(`/api/notes/delete/${noteId}`, {method: 'DELETE'})
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadNotes();
+                    showToast('Note deleted! 🗑️');
+                }
+            })
+            .catch(err => console.error('Error deleting note:', err));
+    }
+}
+
+// ==================== AI CHAT LOGIC ====================
+function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const message = input.value.trim();
+    
+    if (!message) return;
+    
+    const chatContainer = document.getElementById('chatMessages');
+    
+    // Remove placeholder if present
+    const placeholder = chatContainer.querySelector('.text-center');
+    if (placeholder) placeholder.remove();
+    
+    // Add user message
+    chatContainer.innerHTML += `
+        <div class="d-flex justify-content-end mb-3">
+            <div class="chat-bubble chat-bubble-user">
+                <strong>You</strong><br>
+                ${escapeHtml(message)}
+            </div>
+        </div>
+    `;
+    
+    input.value = '';
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    // Show typing indicator
+    const typingId = 'typing_' + Date.now();
+    chatContainer.innerHTML += `
+        <div class="d-flex justify-content-start mb-3" id="${typingId}">
+            <div class="chat-bubble chat-bubble-ai">
+                <em><i class="fas fa-spinner fa-spin"></i> AI is thinking...</em>
+            </div>
+        </div>
+    `;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+    
+    fetch('/api/chat/' + PDF_ID, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({message: message})
+    })
+    .then(res => res.json())
+    .then(data => {
+        // Remove typing indicator
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        
+        // Add AI response
+        chatContainer.innerHTML += `
+            <div class="d-flex justify-content-start mb-3">
+                <div class="chat-bubble chat-bubble-ai">
+                    <strong><i class="fas fa-robot"></i> AI Assistant</strong><br>
+                    ${data.response.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `;
+        
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    })
+    .catch(err => {
+        console.error('Error sending message:', err);
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        
+        chatContainer.innerHTML += `
+            <div class="d-flex justify-content-start mb-3">
+                <div class="chat-bubble chat-bubble-error">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    Error: Could not get response. Please try again.
+                </div>
+            </div>
+        `;
+    });
+}
+
+function loadChatHistory() {
+    fetch('/api/chat/history/' + PDF_ID)
+        .then(res => res.json())
+        .then(messages => {
+            if (messages.length > 0) {
+                const chatContainer = document.getElementById('chatMessages');
+                chatContainer.innerHTML = '';
+                
+                messages.forEach(msg => {
+                    const isUser = msg.role === 'user';
+                    const alignClass = isUser ? 'end' : 'start';
+                    const bubbleClass = isUser ? 'chat-bubble-user' : 'chat-bubble-ai';
+                    const sender = isUser ? 'You' : '<i class="fas fa-robot"></i> AI Assistant';
+                    
+                    chatContainer.innerHTML += `
+                        <div class="d-flex justify-content-${alignClass} mb-3">
+                            <div class="chat-bubble ${bubbleClass}">
+                                <strong>${sender}</strong><br>
+                                ${escapeHtml(msg.content).replace(/\n/g, '<br>')}
+                                <br><small class="text-muted">${msg.timestamp}</small>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        })
+        .catch(err => console.error('Error loading chat history:', err));
+}
+
+// ==================== UTILITY FUNCTIONS ====================
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function showToast(message) {
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = 'toast-notification';
+    toast.textContent = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        z-index: 9999;
+        animation: slideIn 0.3s ease;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+        toast.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// Add toast animations
+const toastStyle = document.createElement('style');
+toastStyle.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(toastStyle);
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function() {
+    // Load quiz when quiz tab is clicked
+    const quizTab = document.querySelector('[data-bs-target="#quiz"]');
+    if (quizTab) {
+        quizTab.addEventListener('shown.bs.tab', function() {
+            if (quizData.length === 0) loadQuiz();
+        });
+    }
+    
+    // Load flashcards when tab is clicked
+    const flashcardsTab = document.querySelector('[data-bs-target="#flashcards"]');
+    if (flashcardsTab) {
+        flashcardsTab.addEventListener('shown.bs.tab', function() {
+            if (flashcards.length === 0) loadFlashcards();
+        });
+    }
+    
+    // Load notes when tab is clicked
+    const notesTab = document.querySelector('[data-bs-target="#notes"]');
+    if (notesTab) {
+        notesTab.addEventListener('shown.bs.tab', function() {
+            loadNotes();
+        });
+    }
+    
+    // Load chat history when tab is clicked
+    const chatTab = document.querySelector('[data-bs-target="#chat"]');
+    if (chatTab) {
+        chatTab.addEventListener('shown.bs.tab', function() {
+            loadChatHistory();
+        });
+    }
+    
+    // Initial load of visible tabs
+    loadQuiz();
+    loadFlashcards();
+    loadNotes();
+    loadChatHistory();
+});
+
+// Keyboard shortcut for chat
+document.addEventListener('keydown', function(e) {
+    // Ctrl+Enter in chat input to send
+    if (e.ctrlKey && e.key === 'Enter') {
+        const chatInput = document.getElementById('chatInput');
+        if (chatInput === document.activeElement) {
+            sendMessage();
+        }
+    }
+    
+    // Left/Right arrows for flashcards
+    const flashcardsTab = document.getElementById('flashcards');
+    if (flashcardsTab && flashcardsTab.classList.contains('active')) {
+        if (e.key === 'ArrowRight') nextFlashcard();
+        if (e.key === 'ArrowLeft') previousFlashcard();
+        if (e.key === ' ') {
+            e.preventDefault();
+            flipFlashcard();
+        }
+    }
+});
+</script>
+{% endblock %}
